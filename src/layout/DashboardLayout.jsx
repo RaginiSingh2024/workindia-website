@@ -52,7 +52,7 @@ export default function DashboardLayout() {
                 {/* Logo */}
                 <div className="px-6 py-5 border-b border-gray-100">
                     <Link to="/" className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center shadow-md">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center shadow-md">
                             <span className="text-white font-bold text-sm">W</span>
                         </div>
                         <span className="text-xl font-bold gradient-text">WorkIndia</span>
@@ -79,7 +79,7 @@ export default function DashboardLayout() {
                 </nav>
 
                 {/* Upgrade Banner */}
-                <div className="m-3 p-4 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 text-white">
+                <div className="m-3 p-4 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 text-white">
                     <p className="text-sm font-semibold mb-1">Upgrade to Premium</p>
                     <p className="text-xs text-primary-100 mb-3">Get priority access and exclusive offers.</p>
                     <button className="w-full bg-white text-primary-700 text-xs font-bold py-1.5 rounded-lg hover:bg-yellow-300 hover:text-primary-900 transition-colors">
@@ -178,7 +178,7 @@ export default function DashboardLayout() {
 
                         {/* Profile Avatar */}
                         <Link to="/dashboard/profile" className="flex items-center gap-2 hover:bg-gray-100 rounded-xl p-1.5 pr-3 transition-colors">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-400 flex items-center justify-center text-white font-bold text-sm shadow-md">
                                 {userName.charAt(0)}
                             </div>
                             <div className="hidden sm:block text-left">

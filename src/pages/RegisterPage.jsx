@@ -73,7 +73,7 @@ export default function RegisterPage() {
             }, 600)
         } else {
             setTimeout(() => {
-                setMessages(prev => [...prev, { role: 'bot', text: "Perfect! I've filled out the form for you. Just click 'Create Account' to finish! 🚀" }])
+                setMessages(prev => [...prev, { role: 'bot', text: "Perfect! I've filled out the registration form for you. Please review your details and click the **'Create Account'** button below to finish! 🚀" }])
             }, 600)
         }
     }
@@ -137,7 +137,7 @@ export default function RegisterPage() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <Link to="/" className="inline-flex items-center gap-2 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center shadow-md">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center shadow-md">
                             <span className="text-white font-bold">W</span>
                         </div>
                         <span className="text-2xl font-bold gradient-text">WorkIndia</span>
@@ -152,7 +152,7 @@ export default function RegisterPage() {
                         onClick={() => setShowChatbot(!showChatbot)}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold transition-all shadow-md ${showChatbot
                             ? 'bg-gray-100 text-gray-600'
-                            : 'bg-gradient-to-r from-primary-600 to-accent-500 text-white hover:shadow-lg scale-105 active:scale-100'
+                            : 'bg-gradient-to-r from-primary-600 to-accent-400 text-white hover:shadow-lg scale-105 active:scale-100'
                             }`}
                     >
                         {showChatbot ? '❌ Close Chatbot' : '🤖 Fill with Chatbot'}

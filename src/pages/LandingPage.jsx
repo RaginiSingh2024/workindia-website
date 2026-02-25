@@ -150,7 +150,7 @@ export default function LandingPage() {
 
                         {STEPS.map((s, i) => (
                             <div key={s.step} className="relative text-center z-10">
-                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center mx-auto mb-6 shadow-xl">
+                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center mx-auto mb-6 shadow-xl">
                                     <span className="text-2xl font-black text-white">{s.step}</span>
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 mb-3">{s.title}</h3>

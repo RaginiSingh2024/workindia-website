@@ -16,19 +16,40 @@ const QUICK_PROMPTS = [
     '🧹 Schedule a home deep cleaning',
 ]
 
-const BOT_REPLIES = {
-    default: [
-        "Great! Based on your location, I'd recommend QuickFix Services and HomePro Experts who are available today for plumbing work. Shall I book one for you? 🔧",
-        "I found 23 available professionals near you! Top picks include a Plumber from AssuredFix (₹499) and a Home Cleaner from CleanNest (₹799). Want to book?",
-        "AC servicing typically costs ₹599–₹1,499 in Bangalore. This includes gas top-up, filter cleaning, and a full check. Shall I schedule it for you? 🧊",
-        "For deep home cleaning, our professionals cover all rooms, kitchen, bathrooms, and sofa. Prices start at ₹799. I can book a slot for this weekend! 🧹",
-        "Our verified electricians are available today in your area. Fan fitting, wiring, and switchboard repair services are all covered. Book now? ⚡",
-    ],
-}
+const SERVICES = [
+    { id: 'plumber', keywords: ['plumber', 'leak', 'pipe', 'tap', 'toilet', 'drain'], name: 'Plumber', price: '₹499', provider: 'QuickFix Services' },
+    { id: 'electrician', keywords: ['electrician', 'light', 'fan', 'wire', 'switch', 'power', 'shock', 'ac repair'], name: 'Electrician', price: '₹599', provider: 'PowerPro Experts' },
+    { id: 'cleaning', keywords: ['cleaning', 'clean', 'deep clean', 'sweep', 'mop', 'maid', 'sofa'], name: 'Home Cleaner', price: '₹799', provider: 'CleanNest India' },
+    { id: 'carpenter', keywords: ['carpenter', 'furniture', 'door', 'wood', 'table', 'chair', 'bed'], name: 'Carpenter', price: '₹399', provider: 'WoodCraft Experts' },
+    { id: 'painter', keywords: ['painter', 'paint', 'wall', 'color', 'interior', 'exterior'], name: 'Painter', price: '₹1499', provider: 'ColourKraft Painters' },
+]
 
-function getBotReply() {
-    const replies = BOT_REPLIES.default
-    return replies[Math.floor(Math.random() * replies.length)]
+function getBotReply(userInput) {
+    const input = userInput.toLowerCase();
+
+    // Check if the user is asking to create an account/register
+    if (input.includes('create account') || input.includes('register') || input.includes('sign up') || input.includes('join')) {
+        return "To get started with booking and managing services, please click on the **'Register'** button in the top navigation bar or the **'Create Free Account'** button on our home page. Let me know if you need help with anything else!";
+    }
+
+    // Intent detection for services
+    const matchedService = SERVICES.find(service =>
+        service.keywords.some(keyword => input.includes(keyword))
+    );
+
+    if (matchedService) {
+        if (input.includes('cost') || input.includes('price') || input.includes('how much') || input.includes('rate')) {
+            return `For ${matchedService.name} services, prices typically start at ${matchedService.price}. This varies based on the scope of work. Would you like me to book a professional from ${matchedService.provider} for you? 🔧`;
+        }
+        return `I found several verified ${matchedService.name}s available in your area! I recommend ${matchedService.provider} (starting at ${matchedService.price}). Shall I go ahead and book a slot for you? ⚡`;
+    }
+
+    // General help or greeting
+    if (input.includes('hi') || input.includes('hello') || input.includes('hey') || input.includes('namaste')) {
+        return "Namaste! I'm here to help you find the best home services. Are you looking for a plumber, electrician, cleaner, or someone else today?";
+    }
+
+    return "I'm not quite sure I understood that. I can help you find plumbers, electricians, cleaners, and more. Or if you're new here, I can help you **create an account**. What would you like to do?";
 }
 
 function MessageBubble({ msg }) {
@@ -36,21 +57,23 @@ function MessageBubble({ msg }) {
     return (
         <div className={`flex gap-3 ${isBot ? 'justify-start' : 'justify-end'} animate-slide-up`}>
             {isBot && (
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-md self-end">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-md self-end">
                     AI
                 </div>
             )}
             <div className={`max-w-[75%] ${isBot ? 'order-2' : 'order-1'}`}>
                 <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${isBot
                     ? 'bg-white text-gray-800 rounded-bl-sm border border-gray-100'
-                    : 'bg-gradient-to-br from-primary-600 to-accent-500 text-white rounded-br-sm'
+                    : 'bg-gradient-to-br from-primary-600 to-accent-400 text-white rounded-br-sm'
                     }`}>
-                    {msg.text}
+                    {msg.text.split('**').map((part, i) => (
+                        i % 2 === 1 ? <strong key={i} className="font-bold">{part}</strong> : part
+                    ))}
                 </div>
                 <p className={`text-xs text-gray-400 mt-1 ${isBot ? 'text-left' : 'text-right'}`}>{msg.time}</p>
             </div>
             {!isBot && (
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-md self-end order-2">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-400 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-md self-end order-2">
                     P
                 </div>
             )}
@@ -61,7 +84,7 @@ function MessageBubble({ msg }) {
 function TypingIndicator() {
     return (
         <div className="flex gap-3 justify-start">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-md self-end">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-md self-end">
                 AI
             </div>
             <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
@@ -94,9 +117,9 @@ export default function ChatbotPage() {
 
         setTimeout(() => {
             setTyping(false)
-            const botMsg = { id: Date.now() + 1, role: 'bot', text: getBotReply(), time: getTime() }
+            const botMsg = { id: Date.now() + 1, role: 'bot', text: getBotReply(userText), time: getTime() }
             setMessages(prev => [...prev, botMsg])
-        }, 1200 + Math.random() * 800)
+        }, 1000 + Math.random() * 500)
     }
 
     const handleKeyDown = (e) => {
@@ -114,7 +137,7 @@ export default function ChatbotPage() {
         <div className="flex flex-col h-full max-h-[calc(100vh-8rem)] animate-fade-in">
             {/* Chat Header */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center text-white font-bold shadow-lg">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center text-white font-bold shadow-lg">
                     🤖
                 </div>
                 <div>
@@ -172,7 +195,7 @@ export default function ChatbotPage() {
                     id="chat-send-btn"
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || typing}
-                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center text-white hover:from-primary-700 hover:to-accent-600 transition-all duration-200 shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center text-white hover:from-primary-700 hover:to-accent-600 transition-all duration-200 shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
                     aria-label="Send message"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

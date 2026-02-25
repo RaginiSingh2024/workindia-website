@@ -16,7 +16,7 @@ export default function Navbar() {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-2 group">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
                             <span className="text-white font-bold text-sm">W</span>
                         </div>
                         <span className="text-xl font-bold gradient-text">GharSeva</span>

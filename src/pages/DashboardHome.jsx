@@ -202,7 +202,7 @@ export default function DashboardHome() {
                             <span className="text-primary-600 font-bold">72%</span>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-2">
-                            <div className="bg-gradient-to-r from-primary-600 to-accent-500 h-2 rounded-full transition-all duration-300" style={{ width: '72%' }} />
+                            <div className="bg-gradient-to-r from-primary-600 to-accent-400 h-2 rounded-full transition-all duration-300" style={{ width: '72%' }} />
                         </div>
                         <p className="text-xs text-gray-400 mt-2">
                             {role === 'employer'
