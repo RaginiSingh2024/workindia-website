@@ -27,29 +27,68 @@ const SERVICES = [
 function getBotReply(userInput) {
     const input = userInput.toLowerCase();
 
+    // 1. JOB SEEKER INTENT
+    const jobKeywords = ['job', 'looking for job', 'work', 'employment', 'apply', 'career', 'vacancy'];
+    const isJobSeeker = jobKeywords.some(keyword => input.includes(keyword));
+
+    // 2. CUSTOMER / SERVICE BOOKING INTENT
+    const serviceKeywords = ['plumber', 'electrician', 'cleaning', 'ac repair', 'service', 'repair', 'fix', 'book'];
+    const isCustomer = serviceKeywords.some(keyword => input.includes(keyword));
+
+    // Response variants
+    const jobResponses = [
+        "Are you looking to register as a service provider? Please create a provider account to start receiving job leads! 💼",
+        "We have many openings for skilled professionals. Would you like to check our 'Jobs' section or register as a partner?",
+        "WorkIndia helps thousands of workers find daily jobs. To get started, please complete your profile in the dashboard."
+    ];
+
+    const customerResponses = [
+        "I found verified professionals near you. Would you like to book a slot now? ⚡",
+        "Our top-rated experts are available for booking. Which service do you need help with right now?",
+        "I can help you find the best prices for home services. Should I show you our most popular service packages?"
+    ];
+
+    const welcomeResponses = [
+        "Namaste! I'm here to help you. Whether you're looking for work or need a service done, I've got you covered! 😊",
+        "Hello! How can I assist you today? I can help with booking services or finding job opportunities.",
+        "Hi there! Welcome to WorkIndia. Are you here to hire someone or looking for a job?"
+    ];
+
+    const getRandomResponse = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
     // Check if the user is asking to create an account/register
     if (input.includes('create account') || input.includes('register') || input.includes('sign up') || input.includes('join')) {
-        return "To get started with booking and managing services, please click on the **'Register'** button in the top navigation bar or the **'Create Free Account'** button on our home page. Let me know if you need help with anything else!";
+        return "To get started, please click on the **'Register'** button in the top navigation bar. You can join as a Customer or a Service Provider!";
     }
 
-    // Intent detection for services
+    // Check Job Seeker Intent
+    if (isJobSeeker) {
+        return getRandomResponse(jobResponses);
+    }
+
+    // Check Service Intent
     const matchedService = SERVICES.find(service =>
         service.keywords.some(keyword => input.includes(keyword))
     );
 
     if (matchedService) {
         if (input.includes('cost') || input.includes('price') || input.includes('how much') || input.includes('rate')) {
-            return `For ${matchedService.name} services, prices typically start at ${matchedService.price}. This varies based on the scope of work. Would you like me to book a professional from ${matchedService.provider} for you? 🔧`;
+            return `For ${matchedService.name} services, prices typically start at **${matchedService.price}**. This varies based on the scope of work. Would you like to book ${matchedService.provider}?`;
         }
-        return `I found several verified ${matchedService.name}s available in your area! I recommend ${matchedService.provider} (starting at ${matchedService.price}). Shall I go ahead and book a slot for you? ⚡`;
+        return `I found verified **${matchedService.name}s** available! ${getRandomResponse(customerResponses)}`;
+    }
+
+    // Handle generic customer intent if no specific service matched but service keywords were used
+    if (isCustomer) {
+        return getRandomResponse(customerResponses);
     }
 
     // General help or greeting
     if (input.includes('hi') || input.includes('hello') || input.includes('hey') || input.includes('namaste')) {
-        return "Namaste! I'm here to help you find the best home services. Are you looking for a plumber, electrician, cleaner, or someone else today?";
+        return getRandomResponse(welcomeResponses);
     }
 
-    return "I'm not quite sure I understood that. I can help you find plumbers, electricians, cleaners, and more. Or if you're new here, I can help you **create an account**. What would you like to do?";
+    return "I'm not quite sure I understood that. I can help you find jobs or book services like plumbers, electricians, and cleaners. What would you like to do?";
 }
 
 function MessageBubble({ msg }) {

@@ -23,7 +23,7 @@ export default function RegisterPage() {
         { field: 'phone', question: "Great! And what's your **Phone Number**?", placeholder: '10-digit mobile number...' },
         { field: 'role', question: "Are you here to **Hire** someone or **Find Work**? (Type 'Job Provider' or 'Job Seeker')", placeholder: "Type 'Job Provider' or 'Job Seeker'..." },
         { field: 'profession', question: "What is your **Profession**? (Painter, Electrician, or Plumber)", placeholder: 'Select your profession...' },
-        { field: 'password', question: "Finally, create a **4-digit numeric Password** for quick login.", placeholder: '4-digit number...', type: 'password' },
+        { field: 'password', question: "Finally, create a **secure Password** for your account (min. 6 characters).", placeholder: 'Enter your password...', type: 'password' },
     ]
 
     useEffect(() => {
@@ -83,7 +83,11 @@ export default function RegisterPage() {
         if (!form.fullName.trim()) e.fullName = 'Name is required'
         if (!/^\d{10}$/.test(form.phone)) e.phone = 'Enter a valid 10-digit phone number'
         if (form.role === 'jobseeker' && !form.profession) e.profession = 'Please select a profession'
-        if (!/^\d{4}$/.test(form.password)) e.password = 'Password must be exactly 4 digits'
+        if (!form.password) {
+            e.password = 'Password is required'
+        } else if (form.password.length < 6) {
+            e.password = 'Password must be at least 6 characters'
+        }
         if (!form.role) e.role = 'Please select a role'
         return e
     }
@@ -287,19 +291,15 @@ export default function RegisterPage() {
 
                                 {/* Password */}
                                 <div>
-                                    <label htmlFor="reg-password" className="label">4-Digit numeric Password</label>
+                                    <label htmlFor="reg-password" className="label">Password</label>
                                     <input
                                         id="reg-password"
                                         type="password"
                                         name="password"
-                                        maxLength={4}
                                         value={form.password}
-                                        onChange={e => {
-                                            const val = e.target.value.replace(/\D/g, '')
-                                            if (val.length <= 4) handleChange({ target: { name: 'password', value: val } })
-                                        }}
-                                        placeholder="● ● ● ●"
-                                        className={`input-field text-center tracking-[1em] font-bold ${errors.password ? 'border-red-400 ring-1 ring-red-400' : ''}`}
+                                        onChange={handleChange}
+                                        placeholder="Min. 6 characters"
+                                        className={`input-field ${errors.password ? 'border-red-400 ring-1 ring-red-400' : ''}`}
                                     />
                                     {errors.password && <p className="text-red-500 text-xs mt-1.5">{errors.password}</p>}
                                 </div>

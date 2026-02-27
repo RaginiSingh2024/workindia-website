@@ -2,21 +2,38 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 export default function LoginPage() {
-    const [form, setForm] = useState({ fullName: '', password: '' })
+    const [form, setForm] = useState({ phoneNumber: '', password: '' })
     const [errors, setErrors] = useState({})
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
     const validate = () => {
         const e = {}
-        if (!form.fullName.trim()) e.fullName = 'Name is required'
-        if (!/^\d{4}$/.test(form.password)) e.password = 'Password must be exactly 4 digits'
+        if (!form.phoneNumber.trim()) {
+            e.phoneNumber = 'Phone number is required'
+        } else if (!/^\d{10}$/.test(form.phoneNumber)) {
+            e.phoneNumber = 'Please enter a valid 10-digit phone number'
+        }
+
+        if (!form.password) {
+            e.password = 'Password is required'
+        } else if (form.password.length < 6) {
+            e.password = 'Password must be at least 6 characters'
+        }
         return e
     }
 
     const handleChange = e => {
         const { name, value } = e.target
-        setForm(prev => ({ ...prev, [name]: value }))
+
+        if (name === 'phoneNumber') {
+            // Only allow digits and limit to 10
+            const val = value.replace(/\D/g, '').slice(0, 10)
+            setForm(prev => ({ ...prev, [name]: val }))
+        } else {
+            setForm(prev => ({ ...prev, [name]: value }))
+        }
+
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
     }
 
@@ -32,9 +49,9 @@ export default function LoginPage() {
         // Simulate login delay
         setTimeout(() => {
             setLoading(false)
-            // Always save the name the user typed at login.
-            // Only set a default role if one wasn't already stored from registration.
-            localStorage.setItem('userName', form.fullName)
+            // Save phone number or a mock name for UI purposes
+            localStorage.setItem('userName', 'User ' + form.phoneNumber.slice(-4))
+            localStorage.setItem('userPhone', form.phoneNumber)
             if (!localStorage.getItem('userRole')) {
                 localStorage.setItem('userRole', 'jobseeker')
             }
@@ -66,25 +83,28 @@ export default function LoginPage() {
                 {/* Card */}
                 <div className="card shadow-xl border-0">
                     <form id="login-form" onSubmit={handleSubmit} noValidate className="space-y-5">
-                        {/* Name */}
+                        {/* Phone Number */}
                         <div>
-                            <label htmlFor="login-fullName" className="label">Name</label>
-                            <input
-                                id="login-fullName"
-                                type="text"
-                                name="fullName"
-                                value={form.fullName}
-                                onChange={handleChange}
-                                placeholder="Enter your name"
-                                className={`input-field ${errors.fullName ? 'border-red-400 ring-1 ring-red-400' : ''}`}
-                            />
-                            {errors.fullName && <p className="text-red-500 text-xs mt-1.5">{errors.fullName}</p>}
+                            <label htmlFor="login-phoneNumber" className="label">Phone Number</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">+91</span>
+                                <input
+                                    id="login-phoneNumber"
+                                    type="text"
+                                    name="phoneNumber"
+                                    value={form.phoneNumber}
+                                    onChange={handleChange}
+                                    placeholder="Enter 10 digit number"
+                                    className={`input-field pl-14 ${errors.phoneNumber ? 'border-red-400 ring-1 ring-red-400' : ''}`}
+                                />
+                            </div>
+                            {errors.phoneNumber && <p className="text-red-500 text-xs mt-1.5">{errors.phoneNumber}</p>}
                         </div>
 
                         {/* Password */}
                         <div>
                             <div className="flex items-center justify-between mb-1.5">
-                                <label htmlFor="login-password" className="label mb-0">4-Digit numeric Password</label>
+                                <label htmlFor="login-password" className="label mb-0">Password</label>
                                 <a id="forgot-password-link" href="#" className="text-xs text-primary-600 hover:text-primary-700 hover:underline font-medium transition-colors">
                                     Forgot password?
                                 </a>
@@ -93,14 +113,10 @@ export default function LoginPage() {
                                 id="login-password"
                                 type="password"
                                 name="password"
-                                maxLength={4}
                                 value={form.password}
-                                onChange={e => {
-                                    const val = e.target.value.replace(/\D/g, '')
-                                    if (val.length <= 4) handleChange({ target: { name: 'password', value: val } })
-                                }}
-                                placeholder="● ● ● ●"
-                                className={`input-field text-center tracking-[1em] font-bold ${errors.password ? 'border-red-400 ring-1 ring-red-400' : ''}`}
+                                onChange={handleChange}
+                                placeholder="Enter your password"
+                                className={`input-field ${errors.password ? 'border-red-400 ring-1 ring-red-400' : ''}`}
                             />
                             {errors.password && <p className="text-red-500 text-xs mt-1.5">{errors.password}</p>}
                         </div>
@@ -141,3 +157,4 @@ export default function LoginPage() {
         </div>
     )
 }
+
