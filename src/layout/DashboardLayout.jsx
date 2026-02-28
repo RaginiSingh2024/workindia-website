@@ -9,11 +9,23 @@ export default function DashboardLayout() {
     const [role, setRole] = useState('jobseeker')
     const [userName, setUserName] = useState('Priya Sharma')
 
+    // AI Onboarding State
+    const [showAIOnboarding, setShowAIOnboarding] = useState(false)
+    const [aiStep, setAiStep] = useState(1)
+    const [seekerData, setSeekerData] = useState({
+        name: '', role: '', salary: '', currentLocation: '', preferredLocation: ''
+    })
+
     useEffect(() => {
         const storedRole = localStorage.getItem('userRole') || 'jobseeker'
         const storedName = localStorage.getItem('userName') || 'Priya Sharma'
         setRole(storedRole)
         setUserName(storedName)
+
+        if (storedRole === 'jobseeker' && !localStorage.getItem('aiOnboardingCompleted')) {
+            setShowAIOnboarding(true)
+            setSeekerData(prev => ({ ...prev, name: storedName }))
+        }
     }, [])
 
     const NAV_ITEMS = [
@@ -37,8 +49,91 @@ export default function DashboardLayout() {
 
     const currentPage = NAV_ITEMS.find(item => isActive(item))?.label || 'Dashboard'
 
+    const handleSeekerForm = (e) => {
+        setSeekerData({ ...seekerData, [e.target.name]: e.target.value })
+    }
+
+    const completeOnboarding = () => {
+        localStorage.setItem('aiOnboardingCompleted', 'true')
+        setShowAIOnboarding(false)
+    }
+
     return (
-        <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <div className="flex h-screen bg-gray-50 overflow-hidden relative">
+            {/* AI Onboarding Modal */}
+            {showAIOnboarding && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gradient-to-br from-indigo-900/80 to-blue-900/80 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col p-8 text-center relative border border-white/20">
+                        {/* Avatar */}
+                        <div className="w-20 h-20 bg-gradient-to-tr from-primary-500 to-accent-400 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl shadow-xl shadow-primary-500/30">
+                            🤖
+                        </div>
+
+                        {aiStep === 1 && (
+                            <div className="space-y-6 animate-fade-in">
+                                <h3 className="text-2xl font-bold text-gray-900">Hi {seekerData.name || 'there'}! 👋</h3>
+                                <p className="text-gray-500 text-lg">I'm your AI career assistant. Let's quickly set up your profile so I can match you with the best opportunities.</p>
+
+                                <div className="text-left mt-6">
+                                    <label className="font-semibold text-gray-700 block mb-2">What's your full name?</label>
+                                    <input type="text" name="name" value={seekerData.name} onChange={handleSeekerForm} className="input-field text-lg py-3" placeholder="Enter your full name" />
+                                </div>
+                                <button onClick={() => setAiStep(2)} disabled={!seekerData.name} className="btn-primary w-full py-3.5 text-lg mt-4 shadow-lg">Continue ➔</button>
+                            </div>
+                        )}
+
+                        {aiStep === 2 && (
+                            <div className="space-y-6 animate-fade-in">
+                                <h3 className="text-2xl font-bold text-gray-900">Your Goals 🎯</h3>
+                                <div className="text-left space-y-5 mt-4">
+                                    <div>
+                                        <label className="font-semibold text-gray-700 block mb-2">What is your desired job role?</label>
+                                        <input type="text" name="role" value={seekerData.role} onChange={handleSeekerForm} className="input-field text-lg py-3" placeholder="e.g. Electrician, Data Entry" />
+                                    </div>
+                                    <div>
+                                        <label className="font-semibold text-gray-700 block mb-2">Expected salary (monthly)</label>
+                                        <input type="text" name="salary" value={seekerData.salary} onChange={handleSeekerForm} className="input-field text-lg py-3" placeholder="e.g. ₹25,000" />
+                                    </div>
+                                </div>
+                                <div className="flex gap-4 mt-6">
+                                    <button onClick={() => setAiStep(1)} className="btn-secondary py-3.5 px-6 shrink-0">Back</button>
+                                    <button onClick={() => setAiStep(3)} disabled={!seekerData.role || !seekerData.salary} className="btn-primary flex-1 py-3.5 text-lg shadow-lg">Next Step ➔</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {aiStep === 3 && (
+                            <div className="space-y-6 animate-fade-in">
+                                <h3 className="text-2xl font-bold text-gray-900">Almost done! 📍</h3>
+                                <div className="text-left space-y-5 mt-4">
+                                    <div>
+                                        <label className="font-semibold text-gray-700 block mb-2">Current Location</label>
+                                        <input type="text" name="currentLocation" value={seekerData.currentLocation} onChange={handleSeekerForm} className="input-field text-lg py-3" placeholder="e.g. Mumbai" />
+                                    </div>
+                                    <div>
+                                        <label className="font-semibold text-gray-700 block mb-2">Preferred Job Location</label>
+                                        <input type="text" name="preferredLocation" value={seekerData.preferredLocation} onChange={handleSeekerForm} className="input-field text-lg py-3" placeholder="Where do you want to work?" />
+                                    </div>
+                                </div>
+                                <div className="flex gap-4 mt-6">
+                                    <button onClick={() => setAiStep(2)} className="btn-secondary py-3.5 px-6 shrink-0">Back</button>
+                                    <button onClick={completeOnboarding} disabled={!seekerData.currentLocation || !seekerData.preferredLocation} className="bg-gradient-to-r from-green-500 to-emerald-600 text-white flex-1 py-3.5 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
+                                        Finish & View Dashboard ✨
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Progress Dots */}
+                        <div className="flex justify-center gap-2 mt-8">
+                            {[1, 2, 3].map(step => (
+                                <div key={step} className={`h-2 rounded-full transition-all duration-300 ${aiStep === step ? 'w-8 bg-primary-600' : 'w-2 bg-gray-200'}`} />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Mobile Overlay */}
             {sidebarOpen && (
                 <div
@@ -94,6 +189,7 @@ export default function DashboardLayout() {
                         onClick={() => {
                             localStorage.removeItem('userRole')
                             localStorage.removeItem('userName')
+                            localStorage.removeItem('aiOnboardingCompleted')
                             navigate('/')
                         }}
                         className="sidebar-item w-full text-red-500 hover:bg-red-50 hover:text-red-600"
