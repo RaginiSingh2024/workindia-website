@@ -23,7 +23,7 @@ export default function RegisterPage() {
         { field: 'phone', question: "Great! And what's your **Phone Number**?", placeholder: '10-digit mobile number...' },
         { field: 'role', question: "Are you here to **Hire** someone or **Find Work**? (Type 'Job Provider' or 'Job Seeker')", placeholder: "Type 'Job Provider' or 'Job Seeker'..." },
         { field: 'profession', question: "What is your **Profession**? (Painter, Electrician, or Plumber)", placeholder: 'Select your profession...' },
-        { field: 'password', question: "Finally, create a **secure Password** for your account (min. 6 characters).", placeholder: 'Enter your password...', type: 'password' },
+        { field: 'password', question: "Finally, set a **4-digit numeric PIN** as your password (digits only, e.g. 1234).", placeholder: 'Enter 4-digit PIN...', type: 'password' },
     ]
 
     useEffect(() => {
@@ -85,8 +85,8 @@ export default function RegisterPage() {
         if (form.role === 'jobseeker' && !form.profession) e.profession = 'Please select a profession'
         if (!form.password) {
             e.password = 'Password is required'
-        } else if (form.password.length < 6) {
-            e.password = 'Password must be at least 6 characters'
+        } else if (!/^\d{4}$/.test(form.password)) {
+            e.password = 'Password must be exactly 4 digits (numbers only)'
         }
         if (!form.role) e.role = 'Please select a role'
         return e
@@ -297,9 +297,18 @@ export default function RegisterPage() {
                                         type="password"
                                         name="password"
                                         value={form.password}
-                                        onChange={handleChange}
-                                        placeholder="Min. 6 characters"
-                                        className={`input-field ${errors.password ? 'border-red-400 ring-1 ring-red-400' : ''}`}
+                                        onChange={e => {
+                                            // Strip every character that is not a digit (0-9)
+                                            const digitsOnly = e.target.value.replace(/\D/g, '')
+                                            // Enforce max length of 4 at the input level
+                                            setForm(prev => ({ ...prev, password: digitsOnly.slice(0, 4) }))
+                                            if (errors.password) setErrors(prev => ({ ...prev, password: '' }))
+                                        }}
+                                        placeholder="Enter 4-digit PIN"
+                                        inputMode="numeric"
+                                        maxLength={4}
+                                        autoComplete="new-password"
+                                        className={`input-field tracking-widest text-lg ${errors.password ? 'border-red-400 ring-1 ring-red-400' : ''}`}
                                     />
                                     {errors.password && <p className="text-red-500 text-xs mt-1.5">{errors.password}</p>}
                                 </div>
