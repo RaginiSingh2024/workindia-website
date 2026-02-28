@@ -17,8 +17,8 @@ export default function LoginPage() {
 
         if (!form.password) {
             e.password = 'Password is required'
-        } else if (form.password.length < 6) {
-            e.password = 'Password must be at least 6 characters'
+        } else if (!/^\d{4}$/.test(form.password)) {
+            e.password = 'Password must be exactly 4 digits (numbers only)'
         }
         return e
     }
@@ -114,9 +114,17 @@ export default function LoginPage() {
                                 type="password"
                                 name="password"
                                 value={form.password}
-                                onChange={handleChange}
-                                placeholder="Enter your password"
-                                className={`input-field ${errors.password ? 'border-red-400 ring-1 ring-red-400' : ''}`}
+                                onChange={e => {
+                                    // Strip non-digits and cap at 4 characters
+                                    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 4)
+                                    setForm(prev => ({ ...prev, password: digitsOnly }))
+                                    if (errors.password) setErrors(prev => ({ ...prev, password: '' }))
+                                }}
+                                placeholder="Enter 4-digit PIN"
+                                inputMode="numeric"
+                                maxLength={4}
+                                autoComplete="current-password"
+                                className={`input-field tracking-widest text-lg ${errors.password ? 'border-red-400 ring-1 ring-red-400' : ''}`}
                             />
                             {errors.password && <p className="text-red-500 text-xs mt-1.5">{errors.password}</p>}
                         </div>
