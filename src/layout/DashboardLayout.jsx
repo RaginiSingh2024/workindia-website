@@ -12,6 +12,7 @@ export default function DashboardLayout() {
     // AI Onboarding State
     const [showAIOnboarding, setShowAIOnboarding] = useState(false)
     const [aiStep, setAiStep] = useState(1)
+    const [salaryType, setSalaryType] = useState('monthly') // 'monthly' | 'hourly'
     const [seekerData, setSeekerData] = useState({
         name: '', role: '', salary: '', currentLocation: '', preferredLocation: ''
     })
@@ -60,8 +61,8 @@ export default function DashboardLayout() {
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden relative">
-            {/* AI Onboarding Modal */}
-            {showAIOnboarding && (
+            {/* AI Onboarding Modal — Job Seekers only */}
+            {showAIOnboarding && role === 'jobseeker' && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gradient-to-br from-indigo-900/80 to-blue-900/80 backdrop-blur-md animate-fade-in">
                     <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col p-8 text-center relative border border-white/20">
                         {/* Avatar */}
@@ -91,8 +92,50 @@ export default function DashboardLayout() {
                                         <input type="text" name="role" value={seekerData.role} onChange={handleSeekerForm} className="input-field text-lg py-3" placeholder="e.g. Electrician, Data Entry" />
                                     </div>
                                     <div>
-                                        <label className="font-semibold text-gray-700 block mb-2">Expected salary (monthly)</label>
-                                        <input type="text" name="salary" value={seekerData.salary} onChange={handleSeekerForm} className="input-field text-lg py-3" placeholder="e.g. ₹25,000" />
+                                        {/* ── Salary Type Toggle ── */}
+                                        <label className="font-semibold text-gray-700 block mb-2">
+                                            Expected Salary ({salaryType === 'monthly' ? 'Monthly' : 'Per Hour'})
+                                        </label>
+                                        <div className="flex gap-0 mb-3 rounded-xl overflow-hidden border border-gray-200 w-fit">
+                                            <button
+                                                type="button"
+                                                id="salary-toggle-monthly"
+                                                onClick={() => setSalaryType('monthly')}
+                                                className={`px-5 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${salaryType === 'monthly'
+                                                        ? 'bg-primary-600 text-white shadow-inner'
+                                                        : 'bg-white text-gray-500 hover:bg-gray-50'
+                                                    }`}
+                                            >
+                                                <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${salaryType === 'monthly' ? 'border-white' : 'border-gray-400'
+                                                    }`}>
+                                                    {salaryType === 'monthly' && <span className="w-1.5 h-1.5 bg-white rounded-full block" />}
+                                                </span>
+                                                Monthly
+                                            </button>
+                                            <button
+                                                type="button"
+                                                id="salary-toggle-hourly"
+                                                onClick={() => setSalaryType('hourly')}
+                                                className={`px-5 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${salaryType === 'hourly'
+                                                        ? 'bg-primary-600 text-white shadow-inner'
+                                                        : 'bg-white text-gray-500 hover:bg-gray-50'
+                                                    }`}
+                                            >
+                                                <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${salaryType === 'hourly' ? 'border-white' : 'border-gray-400'
+                                                    }`}>
+                                                    {salaryType === 'hourly' && <span className="w-1.5 h-1.5 bg-white rounded-full block" />}
+                                                </span>
+                                                Hourly
+                                            </button>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="salary"
+                                            value={seekerData.salary}
+                                            onChange={handleSeekerForm}
+                                            className="input-field text-lg py-3"
+                                            placeholder={salaryType === 'monthly' ? 'e.g. ₹25,000 / month' : 'e.g. ₹150 / hour'}
+                                        />
                                     </div>
                                 </div>
                                 <div className="flex gap-4 mt-6">

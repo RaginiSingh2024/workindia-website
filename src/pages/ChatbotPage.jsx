@@ -117,7 +117,7 @@ function detectIntent(input) {
 
 // ─── BOT BRAIN ───────────────────────────────────────────────────────────────
 
-function getBotResponse(userInput, conversationState) {
+function getBotResponse(userInput, conversationState, userRole) {
     const input = userInput.toLowerCase().trim()
     const intent = detectIntent(input)
     const matchedService = detectService(input)
@@ -132,17 +132,26 @@ function getBotResponse(userInput, conversationState) {
         return { text: greetings[Math.floor(Math.random() * greetings.length)], state: {} }
     }
 
-    // ── JOB SEEKER ────────────────────────────────────
+    // ── JOB INTENT — role-aware branch ────────────────
     if (intent === 'job') {
-        if (matchedService) {
-            const s = matchedService
+        // ── Job Provider: guide them to register / manage services
+        if (userRole === 'employer') {
             return {
-                text: `💼 Great news! We have active openings for **${s.label}s**:\n\n**${s.jobTitle}**\n💰 Salary: ${s.jobSalary} per job\n📍 Multiple cities available\n🕐 Flexible working hours\n\nTo apply, please **register as a Service Provider** from the top navigation bar. Would you like help with that?`,
+                text: `🔧 As a **Service Provider**, you can list your skills and receive job leads directly.\n\nClick **"Register"** or go to **My Services** in the sidebar to manage your active listings. Need help setting up your profile?`,
                 state: {},
             }
         }
+
+        // ── Job Seeker: show relevant openings ──────────
+        if (matchedService) {
+            const s = matchedService
+            return {
+                text: `💼 Great news! We have active openings for **${s.label}s**:\n\n**${s.jobTitle}**\n💰 Salary: ${s.jobSalary} per job\n📍 Bangalore, Delhi, Mumbai, Hyderabad & more\n🕐 Flexible working hours\n\nWould you like to **apply now** or see more details about this role?`,
+                state: { pendingJobApply: s.key },
+            }
+        }
         return {
-            text: `💼 We're always hiring skilled professionals! WorkIndia has opportunities for **plumbers, electricians, AC technicians, carpenters, painters**, and **home cleaners**.\n\nWhich trade are you skilled in? I'll show you the relevant job openings.`,
+            text: `💼 We're always hiring skilled professionals! WorkIndia has open roles for **plumbers, electricians, AC technicians, carpenters, painters**, and **home cleaners**.\n\nWhich trade are you skilled in? I'll show you the relevant openings and help you apply.`,
             state: { awaitingJobCategory: true },
         }
     }
@@ -151,9 +160,12 @@ function getBotResponse(userInput, conversationState) {
     if (conversationState.awaitingJobCategory) {
         const s = detectService(input) || SERVICES.find(sv => sv.label.toLowerCase().includes(input))
         if (s) {
+            const isProvider = userRole === 'employer'
             return {
-                text: `💼 Here are active openings for **${s.label}s**:\n\n**${s.jobTitle}**\n💰 Salary: ${s.jobSalary} per job\n📍 Multiple cities — Bangalore, Delhi, Mumbai, Hyderabad & more\n🕐 Choose your own schedule\n\nClick **"Register"** in the nav bar to create a provider account and start receiving job leads. Need guidance on signing up?`,
-                state: {},
+                text: isProvider
+                    ? `🔧 We have provider opportunities for **${s.label}s**!\n\n**${s.jobTitle}**\n💰 Earn: ${s.jobSalary} per job\n📍 Multiple cities available\n\nGo to **My Services** in the sidebar to list this skill and start receiving booking requests.`
+                    : `💼 Here are active openings for **${s.label}s**:\n\n**${s.jobTitle}**\n💰 Salary: ${s.jobSalary} per job\n📍 Multiple cities — Bangalore, Delhi, Mumbai, Hyderabad & more\n🕐 Flexible working hours\n\nWould you like to **apply** for this role? I can guide you through the steps!`,
+                state: { pendingJobApply: s.key },
             }
         }
     }
@@ -352,7 +364,13 @@ export default function ChatbotPage() {
     const [input, setInput] = useState('')
     const [typing, setTyping] = useState(false)
     const [convState, setConvState] = useState({})
+    const [userRole, setUserRole] = useState('jobseeker')
     const bottomRef = useRef(null)
+
+    useEffect(() => {
+        const storedRole = localStorage.getItem('userRole') || 'jobseeker'
+        setUserRole(storedRole)
+    }, [])
 
     const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
@@ -366,7 +384,7 @@ export default function ChatbotPage() {
         setTyping(true)
 
         setTimeout(() => {
-            const { text: botText, state: newState } = getBotResponse(userText, convState)
+            const { text: botText, state: newState } = getBotResponse(userText, convState, userRole)
             setConvState(prev => ({ ...prev, ...newState }))
             setTyping(false)
             const botMsg = { id: Date.now() + 1, role: 'bot', text: botText, time: getTime() }
