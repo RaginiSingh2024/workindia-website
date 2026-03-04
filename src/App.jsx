@@ -6,6 +6,7 @@ import DashboardLayout from './layout/DashboardLayout'
 import DashboardHome from './pages/DashboardHome'
 import OverviewPage from './pages/OverviewPage'
 import ChatbotPage from './pages/ChatbotPage'
+import SmartHelp from './pages/SmartHelp'
 import JobsPage from './pages/JobsPage'
 import ApplicationsPage from './pages/ApplicationsPage'
 import ProfilePage from './pages/ProfilePage'
@@ -25,6 +26,7 @@ function App() {
           <Route path="applications" element={<ApplicationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="chatbot" element={<ChatbotPage />} />
+          <Route path="smart-help" element={<SmartHelp />} />
           <Route path="ai-job-post" element={<AIPostPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

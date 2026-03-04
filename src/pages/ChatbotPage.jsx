@@ -144,6 +144,72 @@ function detectIntent(input) {
     return 'unknown'
 }
 
+// ─── BILINGUAL RESPONSE FORMATTER ───────────────────────────────────────────
+// Each entry: [englishFragment, hindiTranslation]
+// Matching is done via .includes() so partial strings work across dynamic responses.
+const HINDI_TRANSLATIONS = [
+    // Greeting
+    [
+        "Hello! 👋 I'm your WorkIndia Smart Assistant.",
+        "नमस्ते! 👋 मैं आपका WorkIndia स्मार्ट असिस्टेंट हूं।\nमैं नौकरी खोजने (जैसे इलेक्ट्रीशियन, प्लंबर, ड्राइवर) या पेशेवर संपर्क प्रदान करने में मदद कर सकता हूं। आज आप क्या ढूंढ रहे हैं?"
+    ],
+    // Contact request (dynamic — matched by fragment)
+    [
+        'Would you like to contact them yourself, or should I contact them on your behalf?',
+        'क्या आप उनसे खुद संपर्क करना चाहेंगे, या मैं आपकी ओर से संपर्क करूं?'
+    ],
+    // Contact self
+    [
+        'You can call or WhatsApp them directly. Best of luck with your application!',
+        'आप उन्हें सीधे कॉल या WhatsApp कर सकते हैं। आपके आवेदन के लिए शुभकामनाएं!'
+    ],
+    // Contact bot
+    [
+        'I will notify you in your dashboard as soon as they reply!',
+        'जैसे ही वे जवाब देंगे, मैं आपके डैशबोर्ड में सूचित करूंगा!'
+    ],
+    // Job results header
+    [
+        "💼 Here are some relevant",
+        '💼 यहाँ आपके लिए कुछ प्रासंगिक'
+    ],
+    // No jobs found
+    [
+        "I couldn't find any specific jobs",
+        'मुझे अभी उस श्रेणी में कोई नौकरी नहीं मिली, लेकिन मैं खोजता रहूंगा। आप \'इलेक्ट्रीशियन\', \'प्लंबर\', \'ड्राइवर\', या \'कारपेंटर\' खोज सकते हैं।'
+    ],
+    // Job general
+    [
+        '💼 We have open roles for',
+        '💼 हमारे पास **इलेक्ट्रीशियन, प्लंबर, ड्राइवर, कारपेंटर** और अन्य के लिए पद उपलब्ध हैं।\nआप किस प्रकार की नौकरी ढूंढ रहे हैं?'
+    ],
+    // Fallback
+    [
+        "I didn't quite catch that.",
+        'मैं समझ नहीं पाया। कृपया इस तरह पूछें:\n\n• _"ड्राइवर की नौकरी खोजें"_\n• _"मुझे इलेक्ट्रीशियन की नौकरी चाहिए"_\n• _"कारपेंटर के पद दिखाएं"_'
+    ],
+]
+
+/**
+ * Wraps an English-only bot response into bilingual format:
+ *   Hindi sentence(s)
+ *   English sentence(s)
+ *
+ * For dynamic responses (e.g. company name injected), we match a stable
+ * fragment and combine a pre-translated Hindi line with the original English.
+ */
+function formatBilingual(englishText) {
+    for (const [fragment, hindiText] of HINDI_TRANSLATIONS) {
+        if (englishText.includes(fragment)) {
+            // For entries where hindiText already is a standalone full response
+            // (no further dynamic content needed), return Hindi \n\n English
+            return `${hindiText}\n\n${englishText}`
+        }
+    }
+    // No match found — return English as-is (safe fallback)
+    return englishText
+}
+
 // ─── BOT BRAIN ───────────────────────────────────────────────────────────────
 
 function getBotResponse(userInput, conversationState, userRole) {
@@ -348,7 +414,7 @@ export default function ChatbotPage() {
     const [messages, setMessages] = useState([{
         id: 1,
         role: 'bot',
-        text: languageMode === 'bilingual' 
+        text: languageMode === 'bilingual'
             ? "Hello! 👋 आप मुझसे हिंदी या English में बात कर सकते हैं.\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 **नौकरी के अवसर खोजें**\n\nआप क्या चाहते हैं? / What would you like?"
             : "Hello! 👋 How can I help you today?\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -393,41 +459,46 @@ export default function ChatbotPage() {
     }, [])
 
     useEffect(() => {
-    const handleStorageChange = () => {
-        const newMode = localStorage.getItem('chatLanguageMode') || 'english'
-        setLanguageMode(newMode)
-    }
-    
-    handleStorageChange()
-    window.addEventListener('storage', handleStorageChange)
-    
-    return () => window.removeEventListener('storage', handleStorageChange)
-}, [])
+        const handleStorageChange = () => {
+            const newMode = localStorage.getItem('chatLanguageMode') || 'english'
+            setLanguageMode(newMode)
+        }
 
-useEffect(() => {
-    setMessages([{
-        id: 1,
-        role: 'bot',
-        text: languageMode === 'bilingual' 
-            ? "Hello! 👋 आप मुझसे हिंदी या English में बात कर सकते हैं.\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 **नौकरी के अवसर खोजें**\n\nआप क्या चाहते हैं? / What would you like?"
-            : "Hello! 👋 How can I help you today?\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    }])
-}, [languageMode])
+        handleStorageChange()
+        // 'storage' fires cross-tab; 'languageModeChanged' fires same-tab (from DashboardLayout)
+        window.addEventListener('storage', handleStorageChange)
+        window.addEventListener('languageModeChanged', handleStorageChange)
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('languageModeChanged', handleStorageChange)
+        }
+    }, [])
+
+    useEffect(() => {
+        setMessages([{
+            id: 1,
+            role: 'bot',
+            text: languageMode === 'bilingual'
+                ? "Hello! 👋 आप मुझसे हिंदी या English में बात कर सकते हैं.\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 **नौकरी के अवसर खोजें**\n\nआप क्या चाहते हैं? / What would you like?"
+                : "Hello! 👋 How can I help you today?\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }])
+    }, [languageMode])
 
     const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
     const isHindiText = (text) => {
-    const hindiRegex = /[\u0900-\u097F]/
-    return hindiRegex.test(text)
-}
+        const hindiRegex = /[\u0900-\u097F]/
+        return hindiRegex.test(text)
+    }
 
     const sendMessage = (text) => {
         const userText = (text || input).trim()
         if (!userText) return
 
         if (languageMode === 'english' && isHindiText(userText)) {
-            const warningMsg = { id: Date.now(), role: 'bot', text: "⚠ Please enable Bilingual Mode to chat in Hindi.", time: getTime() }
+            const warningMsg = { id: Date.now(), role: 'bot', text: "⚠ Please enable Upgrade to chat in Hindi.", time: getTime() }
             setMessages(prev => [...prev, warningMsg])
             return
         }
@@ -445,7 +516,9 @@ useEffect(() => {
             const { text: botText, state: newState, options, jobs } = getBotResponse(userText, convState, userRole)
             setConvState(prev => ({ ...prev, ...newState }))
             setTyping(false)
-            const botMsg = { id: Date.now() + 1, role: 'bot', text: botText, options, jobs, time: getTime() }
+            // Apply bilingual formatting when Upgrade is enabled
+            const formattedText = languageMode === 'bilingual' ? formatBilingual(botText) : botText
+            const botMsg = { id: Date.now() + 1, role: 'bot', text: formattedText, options, jobs, time: getTime() }
             setMessages(prev => [...prev, botMsg])
         }, 800 + Math.random() * 400)
     }
@@ -484,48 +557,34 @@ useEffect(() => {
                     🤖
                 </div>
                 <div className="flex-1">
-                    <h2 className="font-bold text-gray-900">{CONTENT[language].assistantTitle}</h2>
+                    <h2 className="font-bold text-gray-900">WorkIndia Smart Assistant</h2>
                     <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                        <span className="text-xs text-gray-500">{CONTENT[language].onlineStatus}</span>
+                        <span className="text-xs text-gray-500">{languageMode === 'bilingual' ? 'ऑनलाइन — तुरंत जवाब देता है' : 'Online — responds instantly'}</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setLanguage('en')}
-                        className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
-                            language === 'en'
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                    >
-                        English
-                    </button>
-                    <button
-                        onClick={() => setLanguage('hi')}
-                        className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
-                            language === 'hi'
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                    >
-                        हिंदी
-                    </button>
+                    <span className={`px-3 py-1 text-xs font-medium rounded-lg ${languageMode === 'bilingual'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-gray-100 text-gray-600'
+                        }`}>
+                        {languageMode === 'bilingual' ? '🌐 Bilingual' : '🔤 English Only'}
+                    </span>
                 </div>
                 <div className="ml-auto flex items-center gap-3">
                     <button
                         id="clear-chat-btn"
-                        onClick={() => { 
-    setMessages([{
-        id: 1, 
-        role: 'bot', 
-        text: languageMode === 'bilingual' 
-            ? "Hello! 👋 आप मुझसे हिंदी या English में बात कर सकते हैं.\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 **नौकरी के अवसर खोजें**\n\nआप क्या चाहते हैं? / What would you like?"
-            : "Hello! 👋 How can I help you today?\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?", 
-        time: getTime() 
-    }]); 
-    setConvState({}) 
-}}
+                        onClick={() => {
+                            setMessages([{
+                                id: 1,
+                                role: 'bot',
+                                text: languageMode === 'bilingual'
+                                    ? "Hello! 👋 आप मुझसे हिंदी या English में बात कर सकते हैं.\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 **नौकरी के अवसर खोजें**\n\nआप क्या चाहते हैं? / What would you like?"
+                                    : "Hello! 👋 How can I help you today?\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
+                                time: getTime()
+                            }]);
+                            setConvState({})
+                        }}
                         className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200"
                     >
                         {languageMode === 'bilingual' ? 'साफ़ करें' : 'Clear'}
@@ -575,7 +634,11 @@ useEffect(() => {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={listening ? (language === 'hi' ? "सुन रहा हूं... अब बोलें" : "Listening... speak now") : CONTENT[language].placeholder}
+                    placeholder={listening
+                        ? (languageMode === 'bilingual' ? 'सुन रहा हूं... अब बोलें' : 'Listening... speak now')
+                        : (languageMode === 'bilingual'
+                            ? '"उपलब्ध प्लंबर दिखाएं" या "मुझे नौकरी चाहिए" आज़माएं...'
+                            : 'Try "Show available plumbers" or "I need a job as electrician"...')}
                     rows={1}
                     className="flex-1 resize-none outline-none text-sm text-gray-800 placeholder-gray-400 max-h-28 leading-relaxed bg-transparent py-3 px-2"
                 />

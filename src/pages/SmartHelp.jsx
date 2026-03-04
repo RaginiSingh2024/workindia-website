@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 
-// Language content
+// ─── Language Content ──────────────────────────────────────────────────────────
 const CONTENT = {
     en: {
-        welcome: "Namaste! 👋 Welcome to **WorkIndia Smart Help**.\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
+        welcome: "Namaste! 👋 Welcome to **WorkIndia Smart Help AI**.\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
         quickPrompts: [
             { label: '🔧 Available plumbers', value: 'Show available plumbers near me' },
             { label: '⚡ List electricians', value: 'List electricians near me' },
@@ -15,11 +15,11 @@ const CONTENT = {
         placeholder: 'Try "Show available plumbers" or "I need a job as electrician"...',
         clearBtn: 'Clear',
         capabilities: ['Book Services', 'Find Jobs', 'Get Contacts'],
-        assistantTitle: 'WorkIndia Smart Help',
-        onlineStatus: 'Online — responds instantly'
+        assistantTitle: 'WorkIndia Smart Help AI',
+        onlineStatus: 'Online — responds instantly',
     },
     hi: {
-        welcome: "नमस्ते! 👋 **वर्कइंडिया स्मार्ट हेल्प** में आपका स्वागत है।\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत और अधिक\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 यदि आप एक कुशल पेशेवर हैं तो **नौकरी के अवसर खोजें**\n\nआप आज क्या करना चाहेंगे?",
+        welcome: "नमस्ते! 👋 **वर्कइंडिया स्मार्ट हेल्प AI** में आपका स्वागत है।\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत और अधिक\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 यदि आप एक कुशल पेशेवर हैं तो **नौकरी के अवसर खोजें**\n\nआप आज क्या करना चाहेंगे?",
         quickPrompts: [
             { label: '🔧 उपलब्ध प्लंबर', value: 'Show available plumbers near me' },
             { label: '⚡ इलेक्ट्रीशियन सूची', value: 'List electricians near me' },
@@ -31,22 +31,40 @@ const CONTENT = {
         placeholder: '"उपलब्ध प्लंबर दिखाएं" या "मुझे इलेक्ट्रीशियन की नौकरी चाहिए" आज़माएं...',
         clearBtn: 'साफ़ करें',
         capabilities: ['सेवाएं बुक करें', 'नौकरियां खोजें', 'संपर्क प्राप्त करें'],
-        assistantTitle: 'वर्कइंडिया स्मार्ट हेल्प',
-        onlineStatus: 'ऑनलाइन — तुरंत जवाब देता है'
-    }
+        assistantTitle: 'वर्कइंडिया स्मार्ट हेल्प AI',
+        onlineStatus: 'ऑनलाइन — तुरंत जवाब देता है',
+    },
 }
 
-// Message bubble component
-const MessageBubble = ({ msg }) => {
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+const isHindiText = (text) => /[\u0900-\u097F]/.test(text)
+
+/**
+ * formatBilingual: returns Hindi response first, English below.
+ * Used when chatLanguageMode === 'bilingual'.
+ */
+function formatBilingual(englishText) {
+    const SMART_HELP_HINDI =
+        'मैं आपकी मदद के लिए यहां हूं। कृपया बताएं कि आप क्या चाहते हैं।'
+    return `${SMART_HELP_HINDI}\n\n${englishText}`
+}
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
+function MessageBubble({ msg }) {
     const isUser = msg.role === 'user'
     return (
         <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-            <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                isUser 
-                    ? 'bg-primary-600 text-white rounded-br-sm' 
-                    : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm shadow-sm'
-            }`}>
-                <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') }} />
+            <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl text-sm leading-relaxed ${isUser
+                ? 'bg-primary-600 text-white rounded-br-sm'
+                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm shadow-sm'
+                }`}>
+                <div
+                    dangerouslySetInnerHTML={{
+                        __html: msg.text
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\n/g, '<br>'),
+                    }}
+                />
                 <div className={`text-xs mt-1 ${isUser ? 'text-primary-100' : 'text-gray-400'}`}>
                     {msg.time}
                 </div>
@@ -55,40 +73,62 @@ const MessageBubble = ({ msg }) => {
     )
 }
 
-// Typing indicator component
-const TypingIndicator = () => (
-    <div className="flex justify-start animate-fade-in">
-        <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm shadow-sm px-4 py-3">
-            <div className="flex gap-1">
-                <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+function TypingIndicator() {
+    return (
+        <div className="flex justify-start animate-fade-in">
+            <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm shadow-sm px-4 py-3">
+                <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
             </div>
         </div>
-    </div>
-)
+    )
+}
 
+// ─── Main Component ────────────────────────────────────────────────────────────
 export default function SmartHelp() {
-    const [language, setLanguage] = useState(() => localStorage.getItem('smartHelpLanguage') || 'en')
-    const [messages, setMessages] = useState([{
+    // Sync with chatLanguageMode set by the Upgrade toggle in the sidebar
+    const [languageMode, setLanguageMode] = useState(
+        () => localStorage.getItem('chatLanguageMode') || 'english'
+    )
+
+    // Derive display language key: bilingual → 'hi', english → 'en'
+    const language = languageMode === 'bilingual' ? 'hi' : 'en'
+
+    const makeWelcomeMsg = (lang) => ({
         id: 1,
         role: 'bot',
-        text: CONTENT[language].welcome,
+        text: CONTENT[lang].welcome,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    }])
+    })
+
+    const [messages, setMessages] = useState(() => [makeWelcomeMsg(languageMode === 'bilingual' ? 'hi' : 'en')])
     const [input, setInput] = useState('')
     const [typing, setTyping] = useState(false)
     const bottomRef = useRef(null)
 
+    // Listen for mode changes — 'storage' fires cross-tab, 'languageModeChanged' fires same-tab
     useEffect(() => {
-        localStorage.setItem('smartHelpLanguage', language)
-        setMessages([{
-            id: 1,
-            role: 'bot',
-            text: CONTENT[language].welcome,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        }])
-    }, [language])
+        const handleModeChange = () => {
+            const newMode = localStorage.getItem('chatLanguageMode') || 'english'
+            setLanguageMode(newMode)
+        }
+        window.addEventListener('storage', handleModeChange)
+        window.addEventListener('languageModeChanged', handleModeChange)
+        return () => {
+            window.removeEventListener('storage', handleModeChange)
+            window.removeEventListener('languageModeChanged', handleModeChange)
+        }
+    }, [])
+
+    // Reset welcome message when mode changes (no full chat reset)
+    useEffect(() => {
+        const lang = languageMode === 'bilingual' ? 'hi' : 'en'
+        setMessages([makeWelcomeMsg(lang)])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [languageMode])
 
     const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
@@ -96,18 +136,37 @@ export default function SmartHelp() {
         const userText = (text || input).trim()
         if (!userText) return
 
+        // Block Hindi when English-only mode is active
+        if (languageMode === 'english' && isHindiText(userText)) {
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: Date.now(),
+                    role: 'bot',
+                    text: '⚠ Please enable Upgrade to chat in Hindi.',
+                    time: getTime(),
+                },
+            ])
+            setInput('')
+            return
+        }
+
         const userMsg = { id: Date.now(), role: 'user', text: userText, time: getTime() }
         setMessages(prev => [...prev, userMsg])
         setInput('')
         setTyping(true)
 
         setTimeout(() => {
-            const botResponse = language === 'hi' 
-                ? "मैं आपकी मदद के लिए यहां हूं। कृपया बताएं कि आप क्या चाहते हैं।"
-                : "I'm here to help you. Please let me know what you need assistance with."
-            
-            const botMsg = { id: Date.now() + 1, role: 'bot', text: botResponse, time: getTime() }
-            setMessages(prev => [...prev, botMsg])
+            const englishResponse = "I'm here to help you. Please let me know what you need assistance with."
+            // In bilingual mode: Hindi first, then English below
+            const botResponse = languageMode === 'bilingual'
+                ? formatBilingual(englishResponse)
+                : englishResponse
+
+            setMessages(prev => [
+                ...prev,
+                { id: Date.now() + 1, role: 'bot', text: botResponse, time: getTime() },
+            ])
             setTyping(false)
         }, 900 + Math.random() * 500)
     }
@@ -123,60 +182,53 @@ export default function SmartHelp() {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages, typing])
 
+    const content = CONTENT[language]
+
     return (
         <div className="flex flex-col h-full max-h-[calc(100vh-8rem)] animate-fade-in">
-            {/* Chat Header */}
+
+            {/* ── Chat Header ─────────────────────────────────── */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 flex items-center gap-4">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center text-xl shadow-lg">
                     🤖
                 </div>
                 <div className="flex-1">
-                    <h2 className="font-bold text-gray-900">{CONTENT[language].assistantTitle}</h2>
+                    <h2 className="font-bold text-gray-900">{content.assistantTitle}</h2>
                     <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                        <span className="text-xs text-gray-500">{CONTENT[language].onlineStatus}</span>
+                        <span className="text-xs text-gray-500">{content.onlineStatus}</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setLanguage('en')}
-                        className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
-                            language === 'en'
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                    >
-                        English
-                    </button>
-                    <button
-                        onClick={() => setLanguage('hi')}
-                        className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
-                            language === 'hi'
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                    >
-                        हिंदी
-                    </button>
-                </div>
+
+                {/* Language mode badge (read-only — controlled by Upgrade toggle) */}
+                <span className={`px-3 py-1 text-xs font-medium rounded-lg ${languageMode === 'bilingual'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-600'
+                    }`}>
+                    {languageMode === 'bilingual' ? '🌐 Bilingual' : '🔤 English Only'}
+                </span>
+
                 <div className="ml-auto flex items-center gap-3">
                     <div className="hidden sm:flex gap-2">
-                        {CONTENT[language].capabilities.map(cap => (
-                            <span key={cap} className="text-xs bg-primary-50 text-primary-700 px-2.5 py-1 rounded-full font-medium border border-primary-100">
+                        {content.capabilities.map(cap => (
+                            <span
+                                key={cap}
+                                className="text-xs bg-primary-50 text-primary-700 px-2.5 py-1 rounded-full font-medium border border-primary-100"
+                            >
                                 {cap}
                             </span>
                         ))}
                     </div>
                     <button
-                        onClick={() => { setMessages([{ id: 1, role: 'bot', text: CONTENT[language].welcome, time: getTime() }]); }}
+                        onClick={() => setMessages([makeWelcomeMsg(language)])}
                         className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
                     >
-                        {CONTENT[language].clearBtn}
+                        {content.clearBtn}
                     </button>
                 </div>
             </div>
 
-            {/* Messages Area */}
+            {/* ── Messages ─────────────────────────────────────── */}
             <div className="flex-1 overflow-y-auto bg-gray-50 rounded-2xl border border-gray-100 p-4 space-y-4 min-h-0">
                 {messages.map(msg => (
                     <MessageBubble key={msg.id} msg={msg} />
@@ -185,9 +237,9 @@ export default function SmartHelp() {
                 <div ref={bottomRef} />
             </div>
 
-            {/* Quick Prompts */}
+            {/* ── Quick Prompts ────────────────────────────────── */}
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                {CONTENT[language].quickPrompts.map((p, idx) => (
+                {content.quickPrompts.map(p => (
                     <button
                         key={p.value}
                         onClick={() => sendMessage(p.value)}
@@ -199,13 +251,13 @@ export default function SmartHelp() {
                 ))}
             </div>
 
-            {/* Input Area */}
+            {/* ── Input Area ───────────────────────────────────── */}
             <div className="mt-3 bg-white rounded-2xl border border-gray-200 shadow-sm flex items-end gap-3 p-3 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-all duration-200">
                 <textarea
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={CONTENT[language].placeholder}
+                    placeholder={content.placeholder}
                     rows={1}
                     className="flex-1 resize-none outline-none text-sm text-gray-800 placeholder-gray-400 max-h-28 leading-relaxed bg-transparent"
                 />

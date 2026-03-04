@@ -12,24 +12,24 @@ export default function DashboardLayout() {
     const [languageMode, setLanguageMode] = useState(() => localStorage.getItem('chatLanguageMode') || 'english')
 
     useEffect(() => {
-    const storedRole = localStorage.getItem('userRole') || 'jobseeker'
-    const storedName = localStorage.getItem('userName') || 'Priya Sharma'
-    const storedMode = localStorage.getItem('chatLanguageMode') || 'english'
-    setRole(storedRole)
-    setUserName(storedName)
-    setOnboardingDone(!!localStorage.getItem('seekerOnboardingCompleted'))
-    setLanguageMode(storedMode)
-}, [])
+        const storedRole = localStorage.getItem('userRole') || 'jobseeker'
+        const storedName = localStorage.getItem('userName') || 'Priya Sharma'
+        const storedMode = localStorage.getItem('chatLanguageMode') || 'english'
+        setRole(storedRole)
+        setUserName(storedName)
+        setOnboardingDone(!!localStorage.getItem('seekerOnboardingCompleted'))
+        setLanguageMode(storedMode)
+    }, [])
 
-useEffect(() => {
-    const handleStorageChange = () => {
-        const newMode = localStorage.getItem('chatLanguageMode') || 'english'
-        setLanguageMode(newMode)
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-}, [])
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const newMode = localStorage.getItem('chatLanguageMode') || 'english'
+            setLanguageMode(newMode)
+        }
+
+        window.addEventListener('storage', handleStorageChange)
+        return () => window.removeEventListener('storage', handleStorageChange)
+    }, [])
 
     // Re-check onboarding status when location changes (user may have just completed it)
     useEffect(() => {
@@ -60,7 +60,7 @@ useEffect(() => {
             { path: '/dashboard/applications', label: 'Bookings', icon: '📋' }
         ] : []),
         { path: '/dashboard/profile', label: 'Profile', icon: '👤' },
-        { path: '/dashboard/chatbot', label: 'Smart Help', icon: '💬' },
+        { path: '/dashboard/smart-help', label: 'Smart Help AI', icon: '💬' },
     ]
 
     const isActive = (item) => {
@@ -114,38 +114,59 @@ useEffect(() => {
                 {/* Upgrade Banner */}
                 <div className="m-3 p-4 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 text-white">
                     <p className="text-sm font-semibold mb-1">Upgrade to Premium</p>
-                    <p className="text-xs text-primary-100 mb-3">Get priority access and exclusive offers.</p>
-                    <div className="grid grid-cols-2 gap-2 mb-3">
+                    <p className="text-xs text-primary-100 mb-2">Get priority access and exclusive offers.</p>
+
+                    {/* Bilingual Mode Label */}
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-primary-100 font-medium">Hindi + English Mode</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${languageMode === 'bilingual'
+                            ? 'bg-green-400 text-white'
+                            : 'bg-white/20 text-white'
+                            }`}>
+                            {languageMode === 'bilingual' ? 'ON' : 'OFF'}
+                        </span>
+                    </div>
+
+                    {/* Modern Toggle */}
+                    <div
+                        className="flex items-center bg-white/15 rounded-full p-1 mb-3 cursor-pointer select-none"
+                        style={{ borderRadius: '999px' }}
+                    >
                         <button
                             type="button"
+                            id="upgrade-enable-btn"
                             onClick={() => {
                                 localStorage.setItem('chatLanguageMode', 'bilingual')
                                 setLanguageMode('bilingual')
+                                window.dispatchEvent(new Event('languageModeChanged'))
                             }}
-                            className={`text-xs font-bold py-2 rounded-lg transition-all duration-200 ${
-                                languageMode === 'bilingual'
-                                    ? 'bg-white text-primary-700 shadow-sm border border-white/20'
-                                    : 'bg-white/20 text-white hover:bg-white/30 border border-white/10'
-                            }`}
+                            style={{ borderRadius: '999px', flex: 1, padding: '6px 0', fontSize: '11px', fontWeight: 700, transition: 'all 0.25s', border: 'none', cursor: 'pointer' }}
+                            className={languageMode === 'bilingual'
+                                ? 'bg-white text-primary-700 shadow-sm'
+                                : 'bg-transparent text-white hover:bg-white/20'
+                            }
                         >
-                            Enable Bilingual Mode
+                            ✓ Enable
                         </button>
                         <button
                             type="button"
+                            id="upgrade-disable-btn"
                             onClick={() => {
                                 localStorage.setItem('chatLanguageMode', 'english')
                                 setLanguageMode('english')
+                                window.dispatchEvent(new Event('languageModeChanged'))
                             }}
-                            className={`text-xs font-bold py-2 rounded-lg transition-all duration-200 ${
-                                languageMode === 'english'
-                                    ? 'bg-white text-primary-700 shadow-sm border border-white/20'
-                                    : 'bg-white/20 text-white hover:bg-white/30 border border-white/10'
-                            }`}
+                            style={{ borderRadius: '999px', flex: 1, padding: '6px 0', fontSize: '11px', fontWeight: 700, transition: 'all 0.25s', border: 'none', cursor: 'pointer' }}
+                            className={languageMode === 'english'
+                                ? 'bg-white text-primary-700 shadow-sm'
+                                : 'bg-transparent text-white hover:bg-white/20'
+                            }
                         >
-                            Disable Bilingual Mode
+                            ✕ Disable
                         </button>
                     </div>
-                    <button className="w-full bg-white text-primary-700 text-xs font-bold py-1.5 rounded-lg hover:bg-yellow-300 hover:text-primary-900 transition-colors">
+
+                    <button className="w-full bg-white text-primary-700 text-xs font-bold py-1.5 rounded-full hover:bg-yellow-300 hover:text-primary-900 transition-colors" style={{ borderRadius: '999px' }}>
                         Upgrade Now
                     </button>
                 </div>
