@@ -344,11 +344,13 @@ const WELCOME_MSG = {
 }
 
 export default function ChatbotPage() {
-    const [language, setLanguage] = useState(() => localStorage.getItem('chatLanguage') || 'en')
+    const [languageMode, setLanguageMode] = useState(() => localStorage.getItem('chatLanguageMode') || 'english')
     const [messages, setMessages] = useState([{
         id: 1,
         role: 'bot',
-        text: CONTENT[language].welcome,
+        text: languageMode === 'bilingual' 
+            ? "Hello! 👋 आप मुझसे हिंदी या English में बात कर सकते हैं.\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 **नौकरी के अवसर खोजें**\n\nआप क्या चाहते हैं? / What would you like?"
+            : "Hello! 👋 How can I help you today?\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }])
     const [input, setInput] = useState('')
@@ -391,20 +393,44 @@ export default function ChatbotPage() {
     }, [])
 
     useEffect(() => {
-        localStorage.setItem('chatLanguage', language)
-        setMessages([{
-            id: 1,
-            role: 'bot',
-            text: CONTENT[language].welcome,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        }])
-    }, [language])
+    const handleStorageChange = () => {
+        const newMode = localStorage.getItem('chatLanguageMode') || 'english'
+        setLanguageMode(newMode)
+    }
+    
+    handleStorageChange()
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => window.removeEventListener('storage', handleStorageChange)
+}, [])
+
+useEffect(() => {
+    setMessages([{
+        id: 1,
+        role: 'bot',
+        text: languageMode === 'bilingual' 
+            ? "Hello! 👋 आप मुझसे हिंदी या English में बात कर सकते हैं.\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 **नौकरी के अवसर खोजें**\n\nआप क्या चाहते हैं? / What would you like?"
+            : "Hello! 👋 How can I help you today?\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }])
+}, [languageMode])
 
     const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    const isHindiText = (text) => {
+    const hindiRegex = /[\u0900-\u097F]/
+    return hindiRegex.test(text)
+}
 
     const sendMessage = (text) => {
         const userText = (text || input).trim()
         if (!userText) return
+
+        if (languageMode === 'english' && isHindiText(userText)) {
+            const warningMsg = { id: Date.now(), role: 'bot', text: "⚠ Please enable Bilingual Mode to chat in Hindi.", time: getTime() }
+            setMessages(prev => [...prev, warningMsg])
+            return
+        }
 
         const userMsg = { id: Date.now(), role: 'user', text: userText, time: getTime() }
         setMessages(prev => [...prev, userMsg])
@@ -489,10 +515,20 @@ export default function ChatbotPage() {
                 <div className="ml-auto flex items-center gap-3">
                     <button
                         id="clear-chat-btn"
-                        onClick={() => { setMessages([{ id: 1, role: 'bot', text: CONTENT[language].welcome, time: getTime() }]); setConvState({}) }}
+                        onClick={() => { 
+    setMessages([{
+        id: 1, 
+        role: 'bot', 
+        text: languageMode === 'bilingual' 
+            ? "Hello! 👋 आप मुझसे हिंदी या English में बात कर सकते हैं.\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 **नौकरी के अवसर खोजें**\n\nआप क्या चाहते हैं? / What would you like?"
+            : "Hello! 👋 How can I help you today?\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?", 
+        time: getTime() 
+    }]); 
+    setConvState({}) 
+}}
                         className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200"
                     >
-                        {CONTENT[language].clearBtn}
+                        {languageMode === 'bilingual' ? 'साफ़ करें' : 'Clear'}
                     </button>
                 </div>
             </div>

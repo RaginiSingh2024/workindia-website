@@ -9,14 +9,27 @@ export default function DashboardLayout() {
     const [role, setRole] = useState('jobseeker')
     const [userName, setUserName] = useState('Priya Sharma')
     const [onboardingDone, setOnboardingDone] = useState(false)
+    const [languageMode, setLanguageMode] = useState(() => localStorage.getItem('chatLanguageMode') || 'english')
 
     useEffect(() => {
-        const storedRole = localStorage.getItem('userRole') || 'jobseeker'
-        const storedName = localStorage.getItem('userName') || 'Priya Sharma'
-        setRole(storedRole)
-        setUserName(storedName)
-        setOnboardingDone(!!localStorage.getItem('seekerOnboardingCompleted'))
-    }, [])
+    const storedRole = localStorage.getItem('userRole') || 'jobseeker'
+    const storedName = localStorage.getItem('userName') || 'Priya Sharma'
+    const storedMode = localStorage.getItem('chatLanguageMode') || 'english'
+    setRole(storedRole)
+    setUserName(storedName)
+    setOnboardingDone(!!localStorage.getItem('seekerOnboardingCompleted'))
+    setLanguageMode(storedMode)
+}, [])
+
+useEffect(() => {
+    const handleStorageChange = () => {
+        const newMode = localStorage.getItem('chatLanguageMode') || 'english'
+        setLanguageMode(newMode)
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+}, [])
 
     // Re-check onboarding status when location changes (user may have just completed it)
     useEffect(() => {
@@ -102,6 +115,36 @@ export default function DashboardLayout() {
                 <div className="m-3 p-4 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 text-white">
                     <p className="text-sm font-semibold mb-1">Upgrade to Premium</p>
                     <p className="text-xs text-primary-100 mb-3">Get priority access and exclusive offers.</p>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                localStorage.setItem('chatLanguageMode', 'bilingual')
+                                setLanguageMode('bilingual')
+                            }}
+                            className={`text-xs font-bold py-2 rounded-lg transition-all duration-200 ${
+                                languageMode === 'bilingual'
+                                    ? 'bg-white text-primary-700 shadow-sm border border-white/20'
+                                    : 'bg-white/20 text-white hover:bg-white/30 border border-white/10'
+                            }`}
+                        >
+                            Enable Bilingual Mode
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                localStorage.setItem('chatLanguageMode', 'english')
+                                setLanguageMode('english')
+                            }}
+                            className={`text-xs font-bold py-2 rounded-lg transition-all duration-200 ${
+                                languageMode === 'english'
+                                    ? 'bg-white text-primary-700 shadow-sm border border-white/20'
+                                    : 'bg-white/20 text-white hover:bg-white/30 border border-white/10'
+                            }`}
+                        >
+                            Disable Bilingual Mode
+                        </button>
+                    </div>
                     <button className="w-full bg-white text-primary-700 text-xs font-bold py-1.5 rounded-lg hover:bg-yellow-300 hover:text-primary-900 transition-colors">
                         Upgrade Now
                     </button>
