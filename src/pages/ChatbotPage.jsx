@@ -1,5 +1,41 @@
 import { useState, useRef, useEffect } from 'react'
 
+// Language content
+const CONTENT = {
+    en: {
+        welcome: "Namaste! 👋 Welcome to **WorkIndia Smart Assistant**.\n\nI can help you:\n🏠 **Book home services** — plumbers, electricians, AC repair & more\n📞 **Get contact details** of any professional\n💰 **Check service pricing**\n💼 **Find job opportunities** if you're a skilled professional\n\nWhat would you like to do today?",
+        quickPrompts: [
+            { label: '🔧 Available plumbers', value: 'Show available plumbers near me' },
+            { label: '⚡ List electricians', value: 'List electricians near me' },
+            { label: '❄️ AC technicians', value: 'Show available AC technicians' },
+            { label: '💰 Service pricing', value: 'What are the prices for all services?' },
+            { label: '🧹 Book a cleaner', value: 'Book a home cleaner' },
+            { label: '💼 I need a job', value: 'I am looking for a job' },
+        ],
+        placeholder: 'Try "Show available plumbers" or "I need a job as electrician"...',
+        clearBtn: 'Clear',
+        capabilities: ['Book Services', 'Find Jobs', 'Get Contacts'],
+        assistantTitle: 'WorkIndia Smart Assistant',
+        onlineStatus: 'Online — responds instantly'
+    },
+    hi: {
+        welcome: "नमस्ते! 👋 **वर्कइंडिया स्मार्ट असिस्टेंट** में आपका स्वागत है।\n\nमैं आपकी मदद कर सकता हूं:\n🏠 **घरेलू सेवाएं बुक करें** — प्लंबर, इलेक्ट्रीशियन, AC मरम्मत और अधिक\n📞 किसी भी पेशेवर के **संपर्क विवरण प्राप्त करें**\n💰 **सेवा मूल्य जांचें**\n💼 यदि आप एक कुशल पेशेवर हैं तो **नौकरी के अवसर खोजें**\n\nआप आज क्या करना चाहेंगे?",
+        quickPrompts: [
+            { label: '🔧 उपलब्ध प्लंबर', value: 'Show available plumbers near me' },
+            { label: '⚡ इलेक्ट्रीशियन सूची', value: 'List electricians near me' },
+            { label: '❄️ AC तकनीशियन', value: 'Show available AC technicians' },
+            { label: '💰 सेवा मूल्य', value: 'What are the prices for all services?' },
+            { label: '🧹 क्लीनर बुक करें', value: 'Book a home cleaner' },
+            { label: '💼 मुझे नौकरी चाहिए', value: 'I am looking for a job' },
+        ],
+        placeholder: '"उपलब्ध प्लंबर दिखाएं" या "मुझे इलेक्ट्रीशियन की नौकरी चाहिए" आज़माएं...',
+        clearBtn: 'साफ़ करें',
+        capabilities: ['सेवाएं बुक करें', 'नौकरियां खोजें', 'संपर्क प्राप्त करें'],
+        assistantTitle: 'वर्कइंडिया स्मार्ट असिस्टेंट',
+        onlineStatus: 'ऑनलाइन — तुरंत जवाब देता है'
+    }
+}
+
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const SERVICES = [
@@ -308,7 +344,13 @@ const WELCOME_MSG = {
 }
 
 export default function ChatbotPage() {
-    const [messages, setMessages] = useState([WELCOME_MSG])
+    const [language, setLanguage] = useState(() => localStorage.getItem('chatLanguage') || 'en')
+    const [messages, setMessages] = useState([{
+        id: 1,
+        role: 'bot',
+        text: CONTENT[language].welcome,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }])
     const [input, setInput] = useState('')
     const [typing, setTyping] = useState(false)
     const [convState, setConvState] = useState({})
@@ -347,6 +389,16 @@ export default function ChatbotPage() {
         const storedRole = localStorage.getItem('userRole') || 'jobseeker'
         setUserRole(storedRole)
     }, [])
+
+    useEffect(() => {
+        localStorage.setItem('chatLanguage', language)
+        setMessages([{
+            id: 1,
+            role: 'bot',
+            text: CONTENT[language].welcome,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }])
+    }, [language])
 
     const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
@@ -405,20 +457,42 @@ export default function ChatbotPage() {
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-600 to-accent-400 flex items-center justify-center text-xl shadow-lg">
                     🤖
                 </div>
-                <div>
-                    <h2 className="font-bold text-gray-900">Smart Help AI</h2>
+                <div className="flex-1">
+                    <h2 className="font-bold text-gray-900">{CONTENT[language].assistantTitle}</h2>
                     <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                        <span className="text-xs text-gray-500">Online — Voice enabled</span>
+                        <span className="text-xs text-gray-500">{CONTENT[language].onlineStatus}</span>
                     </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setLanguage('en')}
+                        className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                            language === 'en'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                    >
+                        English
+                    </button>
+                    <button
+                        onClick={() => setLanguage('hi')}
+                        className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                            language === 'hi'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                    >
+                        हिंदी
+                    </button>
                 </div>
                 <div className="ml-auto flex items-center gap-3">
                     <button
                         id="clear-chat-btn"
-                        onClick={() => { setMessages([WELCOME_MSG]); setConvState({}) }}
+                        onClick={() => { setMessages([{ id: 1, role: 'bot', text: CONTENT[language].welcome, time: getTime() }]); setConvState({}) }}
                         className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200"
                     >
-                        Clear Chat
+                        {CONTENT[language].clearBtn}
                     </button>
                 </div>
             </div>
@@ -465,7 +539,7 @@ export default function ChatbotPage() {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={listening ? "Listening... speak now" : 'Type or speak your request...'}
+                    placeholder={listening ? (language === 'hi' ? "सुन रहा हूं... अब बोलें" : "Listening... speak now") : CONTENT[language].placeholder}
                     rows={1}
                     className="flex-1 resize-none outline-none text-sm text-gray-800 placeholder-gray-400 max-h-28 leading-relaxed bg-transparent py-3 px-2"
                 />
